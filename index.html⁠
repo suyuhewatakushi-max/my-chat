@@ -2,29 +2,51 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AI</title>
-    <style>body{font-family:sans-serif;padding:20px;max-width:500px;margin:auto;}input,textarea,button{width:100%;margin-bottom:10px;padding:10px;box-sizing:border-box;}button{background:#007bff;color:white;border:none;border-radius:5px;}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Chat</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        input, textarea, button { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        #out { margin-top: 10px; padding: 10px; border: 1px solid #eee; min-height: 50px; white-space: pre-wrap; }
+    </style>
 </head>
 <body>
-    <input type="password" id="key" placeholder="API Key">
-    <textarea id="txt" rows="3" placeholder="问题..."></textarea>
-    <button onclick="run()">发送</button>
-    <div id="out"></div>
+    <input type="password" id="key" placeholder="输入 API Key (sk-...)">
+    <textarea id="txt" rows="3" placeholder="输入你想问的问题..."></textarea>
+    <button onclick="run()">发送请求</button>
+    <div id="out">等待交互...</div>
+
     <script>
         async function run() {
             const k = document.getElementById('key').value;
             const t = document.getElementById('txt').value;
-            localStorage.setItem('k', k);
-            document.getElementById('out').innerText = "思考中...";
+            const out = document.getElementById('out');
+            
+            if (!k || !t) { alert("请先填写 Key 和问题"); return; }
+            
+            out.innerText = "正在思考...";
             try {
                 const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer '+k},
-                    body: JSON.stringify({model:"deepseek-chat", messages:[{role:"user", content:t}]})
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + k
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: t }]
+                    })
                 });
                 const d = await r.json();
-                document.getElementById('out').innerText = d.choices[0].message.content;
-            } catch(e) { document.getElementById('out').innerText = "出错"; }
+                if (d.choices && d.choices[0]) {
+                    out.innerText = d.choices[0].message.content;
+                } else {
+                    out.innerText = "返回数据错误：" + JSON.stringify(d);
+                }
+            } catch(e) {
+                out.innerText = "网络连接失败，请检查你的网络环境是否可以访问 API：" + e.message;
+            }
         }
     </script>
 </body>
