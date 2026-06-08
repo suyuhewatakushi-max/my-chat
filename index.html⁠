@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI</title>
+    <style>body{font-family:sans-serif;padding:20px;max-width:500px;margin:auto;}input,textarea,button{width:100%;margin-bottom:10px;padding:10px;box-sizing:border-box;}button{background:#007bff;color:white;border:none;border-radius:5px;}</style>
+</head>
+<body>
+    <input type="password" id="key" placeholder="API Key">
+    <textarea id="txt" rows="3" placeholder="问题..."></textarea>
+    <button onclick="run()">发送</button>
+    <div id="out"></div>
+    <script>
+        async function run() {
+            const k = document.getElementById('key').value;
+            const t = document.getElementById('txt').value;
+            localStorage.setItem('k', k);
+            document.getElementById('out').innerText = "思考中...";
+            try {
+                const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer '+k},
+                    body: JSON.stringify({model:"deepseek-chat", messages:[{role:"user", content:t}]})
+                });
+                const d = await r.json();
+                document.getElementById('out').innerText = d.choices[0].message.content;
+            } catch(e) { document.getElementById('out').innerText = "出错"; }
+        }
+    </script>
+</body>
+</html>
